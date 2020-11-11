@@ -1,0 +1,259 @@
+image:https://raw.githubusercontent.com/FNNDSC/ChRIS_ultron_backEnd/master/docs/assets/logo_chris.png[alt="ChRIS Logo"]
+
+ChRIS_ultron_backEnd
+--------------------
+
+[#image-build-status]
+[link=https://travis-ci.org/FNNDSC/ChRIS_ultron_backEnd] 
+image::https://travis-ci.org/FNNDSC/ChRIS_ultron_backEnd.svg?branch=master[alt="current build status"]
+
+[#image-license]
+[link=https://camo.githubusercontent.com/4152b001d078d61ca98a9796720e677322dfc76896dfb99ebda3efe304b5aad1/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6963656e73652f666e6e6473632f43685249535f756c74726f6e5f6261636b456e642e737667]
+image::https://camo.githubusercontent.com/4152b001d078d61ca98a9796720e677322dfc76896dfb99ebda3efe304b5aad1/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6963656e73652f666e6e6473632f43685249535f756c74726f6e5f6261636b456e642e737667[alt="MIT License"]
+
+[#image-last-commit]
+[link=https://camo.githubusercontent.com/5f0493485adb65e39ee521efd1b7d65659a1c92ff33d2a92bb810eeb24fc902d/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6173742d636f6d6d69742f666e6e6473632f43685249535f756c74726f6e5f6261636b456e642e737667]
+image::https://camo.githubusercontent.com/5f0493485adb65e39ee521efd1b7d65659a1c92ff33d2a92bb810eeb24fc902d/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6173742d636f6d6d69742f666e6e6473632f43685249535f756c74726f6e5f6261636b456e642e737667[alt="Last Commit"]
+
+
+The core backend service for the ChRIS distributed software platform, also known by the anacronym "CUBE". Internally the service is implemented as a Django-MySQL project offering a [collection+json](http://amundsen.com/media-types/collection/) REST API. Important ancillary components include the ``pfcon``, ``pman``, and ``pfioh`` collection of coordinating, managing, and file transfer services.
+
+
+## ChRIS development, testing and deployment
+
+
+### Abstract
+
+This page describes how to quickly get the set of services comprising the ChRIS backend up and running for  CUBE development and how to run the automated tests. A single-machine production deployment of the ChRIS backend services is also explained.
+
+
+### Preconditions
+
+#### Install latest Docker and Docker Compose. 
+
+Currently tested platforms:
+* ``Docker 18.06.0+``
+* ``Docker Compose 1.22.0+``
+* ``Ubuntu 18.04+ and MAC OS X 10.14+``
+
+#### On a Linux machine make sure to add your computer user to the ``docker`` group
+
+
+### TL;DR
+
+If you read nothing else on this page, and just want to get an instance of the ChRIS backend services up and 
+running with no mess, no fuss:
+
+```bash
+git clone https://github.com/FNNDSC/ChRIS_ultron_backend
+cd ChRIS_ultron_backend
+# Run full CUBE instantiation with tests:
+./unmake.sh ; sudo rm -fr FS; rm -fr FS; ./make.sh
+
+# Skip unit and integration tests and the intro:
+./unmake.sh ; sudo rm -fr FS; rm -fr FS; ./make.sh -U -I -s
+```
+The resulting instance uses the default Django development server and therefore is not suitable for production.
+
+
+### Single-machine production deployment
+
+#### To get the production system up:
+
+```bash
+git clone https://github.com/FNNDSC/ChRIS_ultron_backend
+cd ChRIS_ultron_backend
+mkdir secrets
+```
+Now copy all the required secret configuration files into the secrets directory, please take a look at 
+[this](https://github.com/FNNDSC/ChRIS_ultron_backEnd/wiki/ChRIS-backend-production-services-secret-configuration-files) 
+wiki page to learn more about these files 
+
+```bash
+./docker-deploy.sh up
+```
+
+#### To tear down:
+
+```bash
+cd ChRIS_ultron_backend
+./docker-deploy.sh down
+```
+
+
+### Development
+
+#### Optionally setup a virtual environment
+
+##### Install ``virtualenv`` and ``virtualenvwrapper``
+
+```bash
+pip install virtualenv virtualenvwrapper
+```
+
+##### Create a directory for your virtual environments e.g.:
+```bash
+mkdir ~/Python_Envs
+```
+
+##### You might want to add the following two lines to your ``.bashrc`` file:
+```bash
+export WORKON_HOME=~/Python_Envs
+source /usr/local/bin/virtualenvwrapper.sh
+```
+
+##### Then source your ``.bashrc`` and create a new Python3 virtual environment:
+
+```bash
+mkvirtualenv --python=python3 chris_env
+```
+
+##### To activate chris_env:
+```bash
+workon chris_env
+```
+
+##### To deactivate chris_env:
+```bash
+deactivate
+```
+
+##### Install useful python tools in your virtual environment
+```bash
+workon chris_env
+pip install httpie
+pip install python-swiftclient
+pip install django-storage-swift
+```
+
+Note: You can also install some python libraries (not all of them) specified in the ``requirements/base.txt`` and 
+``requirements/local.txt`` files in the repository source.
+
+To list installed dependencies in chris_env:
+```
+pip freeze --local
+````
+
+#### Instantiate CUBE
+
+Start CUBE from the repository source directory by running the make bash script
+
+```bash
+git clone https://github.com/FNNDSC/ChRIS_ultron_backEnd.git
+cd ChRIS_ultron_backEnd
+./make.sh
+```
+All the steps performed by the above script are properly documented in the script itself. 
+
+After running this script all the automated tests should have successfully run and a Django development server should be running in interactive mode in this terminal.
+
+#### Rerun automated tests after modifying source code
+
+Open another terminal and run 
+```bash
+docker ps
+```
+Find out from the previous output the name of the container running the Django server in interactive mode (usually *chrisultronbackend_chris_dev_run_1*) and run the Unit tests and Integration tests within that container. 
+
+To run only the Unit tests:
+
+```bash
+docker exec -it chrisultronbackend_chris_dev_run_1 python manage.py test --exclude-tag integration
+```
+
+To run only the Integration tests:
+
+```bash
+docker exec -it chrisultronbackend_chris_dev_run_1 python manage.py test --tag integration
+```
+
+To run only the Integration tests if the environment has not been restarted in interactive mode (usual for debugging when the make script has been passed a ``-i``:
+
+```bash
+docker exec -it chrisultronbackend_chris_dev_1 python manage.py test --tag integration
+```
+
+
+To run all the tests:
+
+```bash
+docker exec -it chrisultronbackend_chris_dev_run_1 python manage.py test 
+```
+
+After running the Integration tests the ``./FS/remote`` directory **must** be empty otherwise it means some error has occurred and you should manually empty it.
+
+
+#### Check code coverage of the automated tests
+Make sure the ``chris_backend/`` dir is world writable. Then type:
+
+```bash
+docker exec -it chrisultronbackend_chris_dev_run_1 coverage run --source=feeds,plugins,uploadedfiles,users manage.py test
+docker exec -it chrisultronbackend_chris_dev_run_1 coverage report
+```
+
+#### Using https://httpie.org/[HTTPie] client to play with the REST API 
+A simple GET request to retrieve the user-specific list of feeds:
+```bash
+http -a cube:cube1234 http://localhost:8000/api/v1/
+```
+A simple POST request to run the plugin with id 1:
+```bash
+http -a cube:cube1234 POST http://localhost:8000/api/v1/plugins/1/instances/ Content-Type:application/vnd.collection+json Accept:application/vnd.collection+json template:='{"data":[{"name":"dir","value":"cube/"}]}'
+```
+Then keep making the following GET request until the ``"status"`` descriptor in the response becomes ``"finishedSuccessfully"``:
+```bash
+http -a cube:cube1234 http://localhost:8000/api/v1/plugins/instances/1/
+```
+
+#### Using swift client to list files in the users bucket
+```bash
+swift -A http://127.0.0.1:8080/auth/v1.0 -U chris:chris1234 -K testing list users
+```
+
+#### Tear down CUBE
+
+Stop and remove CUBE services and storage space by running the following bash script from the repository source directory
+
+```bash
+./unmake.sh
+```
+
+
+### Documentation
+
+#### REST API reference
+
+Available https://fnndsc.github.io/ChRIS_ultron_backEnd[here].
+
+Install Sphinx and the http extension (useful to document the REST API)
+```
+pip install Sphinx
+pip install sphinxcontrib-httpdomain
+```
+
+Build the html documentation
+```
+cd docs/
+make html
+```
+
+#### ChRIS REST API design.
+
+Available https://github.com/FNNDSC/ChRIS_ultron_backEnd/wiki/ChRIS-REST-API-design[here].
+
+#### ChRIS backend database design.
+
+Available https://github.com/FNNDSC/ChRIS_ultron_backEnd/wiki/ChRIS-backend-database-design[here].
+
+#### Wiki.
+
+Available https://github.com/FNNDSC/ChRIS_ultron_backEnd/wiki[here].
+
+
+[#image-license]
+[link=https://camo.githubusercontent.com/4152b001d078d61ca98a9796720e677322dfc76896dfb99ebda3efe304b5aad1/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6963656e73652f666e6e6473632f43685249535f756c74726f6e5f6261636b456e642e737667]
+image::https://camo.githubusercontent.com/4152b001d078d61ca98a9796720e677322dfc76896dfb99ebda3efe304b5aad1/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6963656e73652f666e6e6473632f43685249535f756c74726f6e5f6261636b456e642e737667[alt="MIT License"]
+
+[#image-last-commit]
+[link=https://camo.githubusercontent.com/5f0493485adb65e39ee521efd1b7d65659a1c92ff33d2a92bb810eeb24fc902d/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6173742d636f6d6d69742f666e6e6473632f43685249535f756c74726f6e5f6261636b456e642e737667]
+image::https://camo.githubusercontent.com/5f0493485adb65e39ee521efd1b7d65659a1c92ff33d2a92bb810eeb24fc902d/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6173742d636f6d6d69742f666e6e6473632f43685249535f756c74726f6e5f6261636b456e642e737667[alt="Last Commit"]
