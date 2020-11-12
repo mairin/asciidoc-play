@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?asciidoc-toc?>
+<?asciidoc-numbered?>
+<article xmlns="http://docbook.org/ns/docbook" xmlns:xl="http://www.w3.org/1999/xlink" version="5.0" xml:lang="en">
+<info>
+<title>ChRIS_ultron_backEnd</title>
+<date>2020-11-11</date>
+</info>
+<simpara><inlinemediaobject>
+<imageobject>
+<imagedata fileref="https://raw.githubusercontent.com/FNNDSC/ChRIS_ultron_backEnd/master/docs/assets/logo_chris.png"/>
+</imageobject>
+<textobject><phrase>ChRIS Logo</phrase></textobject>
+</inlinemediaobject></simpara>
+<section xml:id="_chris_ultron_backend">
+<title>ChRIS_ultron_backEnd</title>
+<informalfigure xml:id="image-build-status">
+<mediaobject>
+<imageobject>
+<imagedata fileref="https://travis-ci.org/FNNDSC/ChRIS_ultron_backEnd.svg?branch=master"/>
+</imageobject>
+<textobject><phrase>current build status</phrase></textobject>
+</mediaobject>
+</informalfigure>
+<informalfigure xml:id="image-license">
+<mediaobject>
+<imageobject>
+<imagedata fileref="https://camo.githubusercontent.com/4152b001d078d61ca98a9796720e677322dfc76896dfb99ebda3efe304b5aad1/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6963656e73652f666e6e6473632f43685249535f756c74726f6e5f6261636b456e642e737667"/>
+</imageobject>
+<textobject><phrase>MIT License</phrase></textobject>
+</mediaobject>
+</informalfigure>
+<informalfigure xml:id="image-last-commit">
+<mediaobject>
+<imageobject>
+<imagedata fileref="https://camo.githubusercontent.com/5f0493485adb65e39ee521efd1b7d65659a1c92ff33d2a92bb810eeb24fc902d/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6173742d636f6d6d69742f666e6e6473632f43685249535f756c74726f6e5f6261636b456e642e737667"/>
+</imageobject>
+<textobject><phrase>Last Commit</phrase></textobject>
+</mediaobject>
+</informalfigure>
+<simpara>The core backend service for the ChRIS distributed software platform, also known by the anacronym "CUBE". Internally the service is implemented as a Django-MySQL project offering a [collection+json](<link xl:href="http://amundsen.com/media-types/collection/">http://amundsen.com/media-types/collection/</link>) REST API. Important ancillary components include the <literal>pfcon</literal>, <literal>pman</literal>, and <literal>pfioh</literal> collection of coordinating, managing, and file transfer services.</simpara>
+</section>
+<section xml:id="_chris_development_testing_and_deployment">
+<title>ChRIS development, testing and deployment</title>
+<section xml:id="_abstract">
+<title>Abstract</title>
+<simpara>This page describes how to quickly get the set of services comprising the ChRIS backend up and running for  CUBE development and how to run the automated tests. A single-machine production deployment of the ChRIS backend services is also explained.</simpara>
+</section>
+<section xml:id="_preconditions">
+<title>Preconditions</title>
+<section xml:id="_install_latest_docker_and_docker_compose">
+<title>Install latest Docker and Docker Compose.</title>
+<simpara>Currently tested platforms:
+* <literal>Docker 18.06.0+</literal>
+* <literal>Docker Compose 1.22.0+</literal>
+* <literal>Ubuntu 18.04+ and MAC OS X 10.14+</literal></simpara>
+</section>
+<section xml:id="_on_a_linux_machine_make_sure_to_add_your_computer_user_to_the_docker_group">
+<title>On a Linux machine make sure to add your computer user to the <literal>docker</literal> group</title>
+
+</section>
+</section>
+<section xml:id="_tldr">
+<title>TL;DR</title>
+<simpara>If you read nothing else on this page, and just want to get an instance of the ChRIS backend services up and
+running with no mess, no fuss:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git clone https://github.com/FNNDSC/ChRIS_ultron_backend
+cd ChRIS_ultron_backend
+# Run full CUBE instantiation with tests:
+./unmake.sh ; sudo rm -fr FS; rm -fr FS; ./make.sh
+
+# Skip unit and integration tests and the intro:
+./unmake.sh ; sudo rm -fr FS; rm -fr FS; ./make.sh -U -I -s</programlisting>
+<simpara>The resulting instance uses the default Django development server and therefore is not suitable for production.</simpara>
+</section>
+<section xml:id="_single_machine_production_deployment">
+<title>Single-machine production deployment</title>
+<section xml:id="_to_get_the_production_system_up">
+<title>To get the production system up:</title>
+<programlisting language="bash" linenumbering="unnumbered">git clone https://github.com/FNNDSC/ChRIS_ultron_backend
+cd ChRIS_ultron_backend
+mkdir secrets</programlisting>
+<simpara>Now copy all the required secret configuration files into the secrets directory, please take a look at
+[this](<link xl:href="https://github.com/FNNDSC/ChRIS_ultron_backEnd/wiki/ChRIS-backend-production-services-secret-configuration-files">https://github.com/FNNDSC/ChRIS_ultron_backEnd/wiki/ChRIS-backend-production-services-secret-configuration-files</link>)
+wiki page to learn more about these files</simpara>
+<programlisting language="bash" linenumbering="unnumbered">./docker-deploy.sh up</programlisting>
+</section>
+<section xml:id="_to_tear_down">
+<title>To tear down:</title>
+<programlisting language="bash" linenumbering="unnumbered">cd ChRIS_ultron_backend
+./docker-deploy.sh down</programlisting>
+</section>
+</section>
+<section xml:id="_development">
+<title>Development</title>
+<section xml:id="_optionally_setup_a_virtual_environment">
+<title>Optionally setup a virtual environment</title>
+<section xml:id="_install_virtualenv_and_virtualenvwrapper">
+<title>Install <literal>virtualenv</literal> and <literal>virtualenvwrapper</literal></title>
+<programlisting language="bash" linenumbering="unnumbered">pip install virtualenv virtualenvwrapper</programlisting>
+</section>
+<section xml:id="_create_a_directory_for_your_virtual_environments_e_g">
+<title>Create a directory for your virtual environments e.g.:</title>
+<programlisting language="bash" linenumbering="unnumbered">mkdir ~/Python_Envs</programlisting>
+</section>
+<section xml:id="_you_might_want_to_add_the_following_two_lines_to_your_bashrc_file">
+<title>You might want to add the following two lines to your <literal>.bashrc</literal> file:</title>
+<programlisting language="bash" linenumbering="unnumbered">export WORKON_HOME=~/Python_Envs
+source /usr/local/bin/virtualenvwrapper.sh</programlisting>
+</section>
+<section xml:id="_then_source_your_bashrc_and_create_a_new_python3_virtual_environment">
+<title>Then source your <literal>.bashrc</literal> and create a new Python3 virtual environment:</title>
+<programlisting language="bash" linenumbering="unnumbered">mkvirtualenv --python=python3 chris_env</programlisting>
+</section>
+<section xml:id="_to_activate_chris_env">
+<title>To activate chris_env:</title>
+<programlisting language="bash" linenumbering="unnumbered">workon chris_env</programlisting>
+</section>
+<section xml:id="_to_deactivate_chris_env">
+<title>To deactivate chris_env:</title>
+<programlisting language="bash" linenumbering="unnumbered">deactivate</programlisting>
+</section>
+<section xml:id="_install_useful_python_tools_in_your_virtual_environment">
+<title>Install useful python tools in your virtual environment</title>
+<programlisting language="bash" linenumbering="unnumbered">workon chris_env
+pip install httpie
+pip install python-swiftclient
+pip install django-storage-swift</programlisting>
+<simpara>Note: You can also install some python libraries (not all of them) specified in the <literal>requirements/base.txt</literal> and
+<literal>requirements/local.txt</literal> files in the repository source.</simpara>
+<simpara>To list installed dependencies in chris_env:</simpara>
+<screen linenumbering="unnumbered">pip freeze --local
+````
+
+#### Instantiate CUBE
+
+Start CUBE from the repository source directory by running the make bash script
+
+```bash
+git clone https://github.com/FNNDSC/ChRIS_ultron_backEnd.git
+cd ChRIS_ultron_backEnd
+./make.sh</screen>
+<simpara>All the steps performed by the above script are properly documented in the script itself.</simpara>
+<simpara>After running this script all the automated tests should have successfully run and a Django development server should be running in interactive mode in this terminal.</simpara>
+</section>
+</section>
+<section xml:id="_rerun_automated_tests_after_modifying_source_code">
+<title>Rerun automated tests after modifying source code</title>
+<simpara>Open another terminal and run</simpara>
+<programlisting language="bash" linenumbering="unnumbered">docker ps</programlisting>
+<simpara>Find out from the previous output the name of the container running the Django server in interactive mode (usually <emphasis role="strong">chrisultronbackend_chris_dev_run_1</emphasis>) and run the Unit tests and Integration tests within that container.</simpara>
+<simpara>To run only the Unit tests:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">docker exec -it chrisultronbackend_chris_dev_run_1 python manage.py test --exclude-tag integration</programlisting>
+<simpara>To run only the Integration tests:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">docker exec -it chrisultronbackend_chris_dev_run_1 python manage.py test --tag integration</programlisting>
+<simpara>To run only the Integration tests if the environment has not been restarted in interactive mode (usual for debugging when the make script has been passed a <literal>-i</literal>:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">docker exec -it chrisultronbackend_chris_dev_1 python manage.py test --tag integration</programlisting>
+<simpara>To run all the tests:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">docker exec -it chrisultronbackend_chris_dev_run_1 python manage.py test</programlisting>
+<simpara>After running the Integration tests the <literal>./FS/remote</literal> directory <emphasis role="strong">must</emphasis> be empty otherwise it means some error has occurred and you should manually empty it.</simpara>
+</section>
+<section xml:id="_check_code_coverage_of_the_automated_tests">
+<title>Check code coverage of the automated tests</title>
+<simpara>Make sure the <literal>chris_backend/</literal> dir is world writable. Then type:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">docker exec -it chrisultronbackend_chris_dev_run_1 coverage run --source=feeds,plugins,uploadedfiles,users manage.py test
+docker exec -it chrisultronbackend_chris_dev_run_1 coverage report</programlisting>
+</section>
+<section xml:id="_using_httpie_client_to_play_with_the_rest_api">
+<title>Using <link xl:href="https://httpie.org/">HTTPie</link> client to play with the REST API</title>
+<simpara>A simple GET request to retrieve the user-specific list of feeds:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">http -a cube:cube1234 http://localhost:8000/api/v1/</programlisting>
+<simpara>A simple POST request to run the plugin with id 1:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">http -a cube:cube1234 POST http://localhost:8000/api/v1/plugins/1/instances/ Content-Type:application/vnd.collection+json Accept:application/vnd.collection+json template:='{"data":[{"name":"dir","value":"cube/"}]}'</programlisting>
+<simpara>Then keep making the following GET request until the <literal>"status"</literal> descriptor in the response becomes <literal>"finishedSuccessfully"</literal>:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">http -a cube:cube1234 http://localhost:8000/api/v1/plugins/instances/1/</programlisting>
+</section>
+<section xml:id="_using_swift_client_to_list_files_in_the_users_bucket">
+<title>Using swift client to list files in the users bucket</title>
+<programlisting language="bash" linenumbering="unnumbered">swift -A http://127.0.0.1:8080/auth/v1.0 -U chris:chris1234 -K testing list users</programlisting>
+</section>
+<section xml:id="_tear_down_cube">
+<title>Tear down CUBE</title>
+<simpara>Stop and remove CUBE services and storage space by running the following bash script from the repository source directory</simpara>
+<programlisting language="bash" linenumbering="unnumbered">./unmake.sh</programlisting>
+</section>
+</section>
+<section xml:id="_documentation">
+<title>Documentation</title>
+<section xml:id="_rest_api_reference">
+<title>REST API reference</title>
+<simpara>Available <link xl:href="https://fnndsc.github.io/ChRIS_ultron_backEnd">here</link>.</simpara>
+<simpara>Install Sphinx and the http extension (useful to document the REST API)</simpara>
+<screen linenumbering="unnumbered">pip install Sphinx
+pip install sphinxcontrib-httpdomain</screen>
+<simpara>Build the html documentation</simpara>
+<screen linenumbering="unnumbered">cd docs/
+make html</screen>
+</section>
+<section xml:id="_chris_rest_api_design">
+<title>ChRIS REST API design.</title>
+<simpara>Available <link xl:href="https://github.com/FNNDSC/ChRIS_ultron_backEnd/wiki/ChRIS-REST-API-design">here</link>.</simpara>
+</section>
+<section xml:id="_chris_backend_database_design">
+<title>ChRIS backend database design.</title>
+<simpara>Available <link xl:href="https://github.com/FNNDSC/ChRIS_ultron_backEnd/wiki/ChRIS-backend-database-design">here</link>.</simpara>
+</section>
+<section xml:id="_wiki">
+<title>Wiki.</title>
+<simpara>Available <link xl:href="https://github.com/FNNDSC/ChRIS_ultron_backEnd/wiki">here</link>.</simpara>
+<informalfigure xml:id="image-footer-license">
+<mediaobject>
+<imageobject>
+<imagedata fileref="https://camo.githubusercontent.com/4152b001d078d61ca98a9796720e677322dfc76896dfb99ebda3efe304b5aad1/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6963656e73652f666e6e6473632f43685249535f756c74726f6e5f6261636b456e642e737667"/>
+</imageobject>
+<textobject><phrase>MIT License</phrase></textobject>
+</mediaobject>
+</informalfigure>
+<informalfigure xml:id="image-footer-last-commit">
+<mediaobject>
+<imageobject>
+<imagedata fileref="https://camo.githubusercontent.com/5f0493485adb65e39ee521efd1b7d65659a1c92ff33d2a92bb810eeb24fc902d/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6173742d636f6d6d69742f666e6e6473632f43685249535f756c74726f6e5f6261636b456e642e737667"/>
+</imageobject>
+<textobject><phrase>Last Commit</phrase></textobject>
+</mediaobject>
+</informalfigure>
+</section>
+</section>
+</section>
+</article>
